@@ -6,7 +6,6 @@ export default class BootScene extends Scene {
     super({ key: 'BootScene' })
 
     const channel = geckos({ port: 1444 })
-    channel.maxMessageSize = 1024*1024*5*8;
     
     channel.onConnect(error => {
       if (error) console.error(error.message)

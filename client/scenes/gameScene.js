@@ -2,8 +2,6 @@ import { Scene } from 'phaser'
 import axios from 'axios'
 import Player from '../components/player.js'
 import Controls from '../components/controls.js'
-import { FkDestructibleObject } from '../../shared/destructibleobject.js'
-import { FkDstrGridData } from '../../shared/fkdstrgriddata.js'
 import eventsCenter from '../components/eventcenter.js'
 import {world} from '../../shared/world.js'
 import * as _ from "lodash-es"
@@ -14,12 +12,14 @@ export default class GameScene extends Scene {
     this.objects = {}
     this.playerId,
     this.ground = [];
+    this.groundTiles = [];
     this.worldUpdateCache = [];
     this.worldUpdateTicker = 0;
     this.chunkSize = world.getChunkSize();
     this.worldSize = world.getWorldSize();
     this.controls = null;
     this.counter = 0;
+    this.backgrounds = [];
   }
 
   init({ channel }) {
@@ -29,13 +29,8 @@ export default class GameScene extends Scene {
   preload() {
     this.load.image("bg", "./assets/bg.png");
     this.load.image("player", "./assets/player.png");
-   
-    this.load.image("gold", "./assets/gold.png");
-    this.load.image("dirt", "./assets/dirt.png");
-    for(var i = 0; i < 5; i ++)
-    {
-      //this.load.image("dirt"+i, "./assets/dirt"+i+".png");
-    }
+
+    this.load.image('base_tiles', 'assets/tileSet-extruded.png')
   }
 
      
@@ -50,17 +45,46 @@ export default class GameScene extends Scene {
   }
 
   async create() {
+
+    this.controls = new Controls(this, this.channel)
+    
+    var colors = [
+      [0x836243,0x33261a],
+      [0x33261a,0x852727],
+      [0x852727,0x331a1a],
+      [0x331a1a,0x2b3793],
+      [0x2b3793,0x0d1232],
+      [0x0d1232,0x28884c],
+      [0x28884c,0x0f331d],
+      [0x0f331d,0x823399],
+      [0x823399,0x401a4b],
+      [0x401a4b,0x000b8f]
+    ]
+
+    var SkyBox = this.add.graphics().setDepth(-1);
+    SkyBox.fillGradientStyle(0x80acf2,0x80acf2,0x4287f5,0x4287f5, 1);
+    SkyBox.fillRect(0,-2048,this.chunkSize,this.chunkSize);
+
+
+
     for(var x = 0; x < this.worldSize.width; x ++){
       for(var y = 0; y < this.worldSize.height; y ++){
 
-        var color1 = new FkDestructibleObject(this, x*this.chunkSize,y*this.chunkSize,this.chunkSize,this.chunkSize,"dirt",0,7)
-      
-        this.ground.push(color1)
+        var texturename = "";
+
+        if(y <= 5){
+          texturename = "dirt"+y
+        }
+        var bgrect = this.add.graphics().setDepth(-1);
+
+        bgrect.fillGradientStyle(colors[y][0],colors[y][0],colors[y][1],colors[y][1], 1);
+        bgrect.fillRect(x*this.chunkSize,y*this.chunkSize,this.chunkSize,this.chunkSize);
+
+        this.backgrounds.push(bgrect)
+
       }
     }
 
-    this.background = this.add.tileSprite(1920/2,1080/2,1920,1080,'bg').setDepth(-1).setOrigin(0.5,0.5);
-    this.controls = new Controls(this, this.channel)
 
     this.waitFor(()=> this.objects[this.playerId] != null, () => {
       this.cameras.main.setZoom(1);
@@ -68,12 +92,36 @@ export default class GameScene extends Scene {
     })
 
     const initWorld = world => {
-      for(var i = 0; i < this.ground.length; i ++){
-        this.ground[i].dataBody = this.ground[i].dataBody.updateWithQuadTree22( world[i].dataBody);
-       
-      }
-      this.ground[0].drawDstrObject();
-      console.log(this.ground)
+        //this.groundTiles = world;
+        var tileColors = [
+          "#ffffff",  //air
+          "#87600c",  //dirt
+          "#6e6759",  //stone
+          "#4a463d",  //obsidian
+          "cc802f",   //copper
+          "adaba8",   //tin
+          "#757575",  //silver
+          "#ffe600",  //gold
+          "#9dced1",  //diamond
+          "#00ff00",  //emerald
+          "#ff0000",  //ruby
+          "#3b3b27",  //loparite
+          "#f700ff",  //treasure1
+          "#c802cf",  //treasure2
+          "#f5384b",  //lava
+          "#830087"   //exploding // can be anything
+        ];
+
+      var result = [0][0];
+
+      result = world;
+
+      //console.log(result[0][0])
+
+      this.map = this.make.tilemap({ data: result[0][0], tileWidth: 64, tileHeight: 64, })
+      this.tileset = this.map.addTilesetImage('base_tiles', 'base_tiles', 64,64,1,2)
+      this.layer = this.map.createLayer(0,this.tileset,0,0)
+
     }
 
     const playerUpdateHandler = updates => {
@@ -81,7 +129,6 @@ export default class GameScene extends Scene {
         const { playerId, x, y, scale, mass, health, playermassrequiredtogrow, playersize, zoom, dead } = gameObject
 
         const alpha = dead ? 0 : 1
-
      
 
         if (Object.keys(this.objects).includes(playerId)) {
@@ -90,24 +137,14 @@ export default class GameScene extends Scene {
           let sprite = this.objects[playerId].sprite
           sprite.setAlpha(alpha)
           sprite.setPosition(x, y)
-          sprite.setDisplaySize(playersize, playersize)
-
-          var cacheUpdate = {x,y,playersize}
-          if(!_.some(this.worldUpdateCache, v => _.isEqual(v, cacheUpdate)))
-          this.worldUpdateCache.push(cacheUpdate);
+          //sprite.setDisplaySize(playersize, playersize)
 
           if(playerId == this.playerId){
             this.controls.setCoords(x,y);
             this.controls.zoomTo(zoom);
-            this.background.setScale(1+(scale*0.1))
-            this.background.setX(x)
-            this.background.setY(y)
             eventsCenter.emit("updateMass", mass);
             eventsCenter.emit("updateHealth", health);
           }
-
-
-          //this.objects[playerId].setVelocity(dx, dy)
         } else {
           // if the gameObject does NOT exist,
           // create a new gameObject
@@ -140,6 +177,11 @@ export default class GameScene extends Scene {
       }
     })
 
+    this.channel.on('tileMined', tile => {
+      console.log(tile)
+      this.map.removeTileAt(tile.x, tile.y);
+    })
+
     try {
       let res = await axios.get(`${location.protocol}//${location.hostname}:1444/getState`)
 
@@ -169,10 +211,11 @@ export default class GameScene extends Scene {
   }
 
   updateWorld = updates =>{
+    /*
     var worldUpdates = [];
     
     var stateHide = FkDstrGridData.getStateHide();
-    var stateVisible = FkDstrGridData.getStateVisible();
+    var stateVisible = FkDstrGridData.getStateDirt();
 
     updates.forEach(gameObject => {
       const { x, y, playersize} = gameObject
@@ -184,34 +227,24 @@ export default class GameScene extends Scene {
     this.ground.forEach(layer => {
       var layerGotUpdates = false;
       worldUpdates.forEach(upd => {
-
         var playerRectangle = new Phaser.Geom.Rectangle(upd.x-upd.playersize/2,upd.y-upd.playersize/2,upd.playersize,upd.playersize);
         
         var collision = FkDestructibleObject.CollideWithRectangle(layer, playerRectangle, stateVisible)
           
         if(collision){
-          //console.log("Colliding!, update")
           layer.modifyByRectangle(playerRectangle, stateHide, false);
           layerGotUpdates = true;
         }
-        /*
-        if(layer.dataBody.RectangleToRectangle(layer.dataRect,playerRectangle)){
-          //console.log("PLAYER", playerRectangle, stateVisible)
-        
-          else{
-            //console.log(layer.dataPos, layer.dataRect, playerRectangle)
-          }
-       
-        }
-        */
       })
 
     if(layerGotUpdates)
     layer.drawDstrObject();
     })
+    */
   }
 
   update(time, delta){
+    /*
     this.worldUpdateTicker += delta;
 
     if(this.worldUpdateCache.length >= 2 && this.worldUpdateTicker >= (1000/10)){
@@ -219,6 +252,6 @@ export default class GameScene extends Scene {
       this.worldUpdateCache = [];
       this.worldUpdateTicker = 0;
     }
- 
+ */
   }
 }

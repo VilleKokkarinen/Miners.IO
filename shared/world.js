@@ -1,11 +1,11 @@
 
 export class world {
 
-    static tilesize = 32;
+    static tilesize = 64;
     static tiles = 256;
     static chunkSize = this.tilesize*this.tiles;
     static chunksWidth = 1;
-    static chunksHeight = 2;
+    static chunksHeight = 1;
 
 
     static getChunkSize() {

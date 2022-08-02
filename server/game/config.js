@@ -16,6 +16,8 @@ export const config = {
     default: 'arcade',
     arcade: {
       debug: true,
+      gravity: { y: 100 },
+      tileBias: 64
     }
   }
 }

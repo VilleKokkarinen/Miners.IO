@@ -23,10 +23,12 @@
     "@geckos.io/phaser-on-nodejs": "1.2.7",
     "@geckos.io/server": "2.2.1",
     "axios": "^0.21.1",
+    "base64-js": "^1.5.1",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "lodash-es": "^4.17.21",
-    "phaser": "3.55.2"
+    "phaser": "3.55.2",
+    "tinycolor2": "^1.4.2"
   },
   "devDependencies": {
     "@yandeu/prettier-config": "^0.0.2",
