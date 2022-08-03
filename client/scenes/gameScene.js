@@ -92,33 +92,13 @@ export default class GameScene extends Scene {
     })
 
     const initWorld = world => {
-        //this.groundTiles = world;
-        var tileColors = [
-          "#ffffff",  //air
-          "#87600c",  //dirt
-          "#6e6759",  //stone
-          "#4a463d",  //obsidian
-          "cc802f",   //copper
-          "adaba8",   //tin
-          "#757575",  //silver
-          "#ffe600",  //gold
-          "#9dced1",  //diamond
-          "#00ff00",  //emerald
-          "#ff0000",  //ruby
-          "#3b3b27",  //loparite
-          "#f700ff",  //treasure1
-          "#c802cf",  //treasure2
-          "#f5384b",  //lava
-          "#830087"   //exploding // can be anything
-        ];
-
       var result = [0][0];
 
       result = world;
 
       //console.log(result[0][0])
 
-      this.map = this.make.tilemap({ data: result[0][0], tileWidth: 64, tileHeight: 64, })
+      this.map = this.make.tilemap({ data: result, tileWidth: 64, tileHeight: 64, })
       this.tileset = this.map.addTilesetImage('base_tiles', 'base_tiles', 64,64,1,2)
       this.layer = this.map.createLayer(0,this.tileset,0,0)
 
@@ -126,7 +106,7 @@ export default class GameScene extends Scene {
 
     const playerUpdateHandler = updates => {
       updates.forEach(gameObject => {
-        const { playerId, x, y, scale, mass, health, playermassrequiredtogrow, playersize, zoom, dead } = gameObject
+        const { playerId, x, y, scale, mass, health, playermassrequiredtogrow, playersize, zoom, dead, fuel, fuelMax } = gameObject
 
         const alpha = dead ? 0 : 1
      
@@ -144,6 +124,7 @@ export default class GameScene extends Scene {
             this.controls.zoomTo(zoom);
             eventsCenter.emit("updateMass", mass);
             eventsCenter.emit("updateHealth", health);
+            eventsCenter.emit("updateFuel", {fuel, fuelMax});
           }
         } else {
           // if the gameObject does NOT exist,
@@ -211,47 +192,10 @@ export default class GameScene extends Scene {
   }
 
   updateWorld = updates =>{
-    /*
-    var worldUpdates = [];
-    
-    var stateHide = FkDstrGridData.getStateHide();
-    var stateVisible = FkDstrGridData.getStateDirt();
-
-    updates.forEach(gameObject => {
-      const { x, y, playersize} = gameObject
-      worldUpdates.push({x,y,playersize})
-    });
-
-    // go through and merge rectangles together for optimization
-
-    this.ground.forEach(layer => {
-      var layerGotUpdates = false;
-      worldUpdates.forEach(upd => {
-        var playerRectangle = new Phaser.Geom.Rectangle(upd.x-upd.playersize/2,upd.y-upd.playersize/2,upd.playersize,upd.playersize);
-        
-        var collision = FkDestructibleObject.CollideWithRectangle(layer, playerRectangle, stateVisible)
-          
-        if(collision){
-          layer.modifyByRectangle(playerRectangle, stateHide, false);
-          layerGotUpdates = true;
-        }
-      })
-
-    if(layerGotUpdates)
-    layer.drawDstrObject();
-    })
-    */
+  
   }
 
   update(time, delta){
-    /*
-    this.worldUpdateTicker += delta;
-
-    if(this.worldUpdateCache.length >= 2 && this.worldUpdateTicker >= (1000/10)){
-      this.updateWorld(this.worldUpdateCache)
-      this.worldUpdateCache = [];
-      this.worldUpdateTicker = 0;
-    }
- */
+  
   }
 }

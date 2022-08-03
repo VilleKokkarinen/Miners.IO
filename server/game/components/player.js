@@ -29,11 +29,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     this.prevInputValues = this.inputValues;
 
-
     this.playerId = playerId
     this.move = {}
-
-    this.collidingTiles = [];
 
     this.name = "";
     this.mass = 100;
@@ -42,6 +39,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.playersize = 56;
     this.playerspeed = 5000;
     this.health = 100;
+    this.fuel = 10000;
+    this.prevfuel = 10000;
+    this.fuelMax = 10000;
+    this.fuelDrainRate = 0;
+    this.fuelDrainTimer = 0;
     this.playeravatartype = "player1";
     this.playeravatarcolor = "#ff00ff";
 
@@ -50,8 +52,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.body.setSize(56,56, true)
     this.body.setMass(this.mass)
     this.body.setDrag(0.025, 1)
-    this.body.setMaxVelocityX(250)
-    this.body.setMaxVelocityY(500)
+    this.body.setMaxVelocityX(2500)
+    this.body.setMaxVelocityY(5000)
     this.body.setDamping(true)
     this.setCollideWorldBounds(true)
 
@@ -82,6 +84,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.body.setDamping(true)
     this.setCollideWorldBounds(true)
     this.setPosition(x,y)
+    this.fuel = 1000;
+    this.fuelMax = 1000;
   }
 
   setMove(data) {
@@ -89,30 +93,40 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if(this.movementEnabled){
       this.prevVelocity = this.body.velocity;
       var velocityX = 0;
-      var velocityY = 0;
-
-      if(this.inputValues.w == true )
-      velocityY -= 1175;
+      var velocityY = 0;         
 
       if(this.inputValues.a == true )
-      velocityX -= 250;
+      {
+        this.fuelDrainRate = 20;
+        velocityX -= 250;
+      }
+    
       
       if(this.inputValues.d == true )
-      velocityX += 250;
+      {
+        this.fuelDrainRate = 20;
+        velocityX += 250;
+      }
 
-      if(this.inputValues.s == true )
-      velocityY += 0;
+      if(this.inputValues.w == true ){
+        this.fuelDrainRate = 50;
+        velocityY -= 1175;
+      }
+
+      if(this.inputValues.w == false &&
+        this.inputValues.a == false &&
+        this.inputValues.d == false
+      ){
+        this.fuelDrainRate = 0;
+      }
+
+      //if(this.inputValues.s == true )
+      //velocityY += 0;
       
       if(this.body.velocity.x == 0)
       this.setVelocityX(velocityX/4)
 
       this.setAccelerationX(velocityX)
-
-
-      if(velocityY < 0){
-        this.collidingTiles = [];
-      }
-
       this.setAccelerationY(velocityY)
     }
   }
@@ -128,79 +142,70 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     var healthbonus = 0;
 
-    var tilestypes = [
-      "#ffffff",  //air
-      "#87600c",  //dirt
-      "#6e6759",  //stone
-      "#4a463d",  //obsidian
-      "cc802f",   //copper
-      "adaba8",   //tin
-      "#757575",  //silver
-      "#ffe600",  //gold
-      "#9dced1",  //diamond
-      "#00ff00",  //emerald
-      "#ff0000",  //ruby
-      "#3b3b27",  //loparite
-      "#f700ff",  //treasure1
-      "#c802cf",  //treasure2
-      "#f5384b",  //lava
-      "#830087"   //exploding // can be anything
-    ]
-
-    if (material <= 2 || material >= 14) // dirt & stone discarded, explosives explode, and lava is lava
+    if (material < 16 || material >= 30) // dirt & stone discarded, explosives explode, and lava is lava
     {
       massbonus = 0;
-    }else if (material == 3)
+    }else if (material == 19)
     {
         massbonus = 100; // obsidian
-    }else if (material == 4)
+    }else if (material == 20)
     {
         massbonus = 75; // copper
     }
-    else if (material == 5)
+    else if (material == 21)
     {
         massbonus = 50; // tin
     }
-    else if (material == 6)
+    else if (material == 22)
     {
         massbonus = 100; // silver
     }
-    else if (material == 7)
+    else if (material == 23)
     {
         massbonus = 200; // gold
     }
-    else if (material == 8)
+    else if (material == 24)
     {
         massbonus = 20; // diamond
     }
-    else if (material == 9)
+    else if (material == 25)
     {
         massbonus = 20; // emerald
     }
-    else if (material == 10)
+    else if (material == 26)
     {
         massbonus = 20; // ruby
     }
-    else if (material == 11)
+    else if (material == 27)
     {
         massbonus = 10; // loparite
     }
-    else if (material == 12)
+    else if (material == 28)
     {
         massbonus = 200; // treasure 1
     }
-    else if (material == 13)
+    else if (material == 29)
     {
         massbonus = 200; // treasure 2
     }
 
 
+    this.prevfuel = this.fuel;
+    this.fuel -= 50;
 
     this.mass += massbonus;
     this.body.setMass(this.mass)
 
   }
-  update() {
+  update(time, delta) {
+    this.fuelDrainTimer += delta
+
+
+    if(this.fuelDrainTimer > 500){
+      this.fuelDrainTimer = 0;
+      this.prevfuel = this.fuel;
+      this.fuel -= (this.fuelDrainRate + 1)
+    }
     //this.setPosition(this.move.x, this.move.y)
     //this.setVelocity(this.move.dx, this.move.dy)
     //this.setMaxVelocity(this.playerspeed,this.playerspeed);

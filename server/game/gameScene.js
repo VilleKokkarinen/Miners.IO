@@ -18,6 +18,7 @@ export class GameScene extends Scene {
     this.chunkSize = world.getChunkSize();
     this.worldSize = world.getWorldSize();
     this.tiles = world.tiles;
+    this.groundTileCount = 8*3;
   }
 
   init() {
@@ -46,7 +47,9 @@ export class GameScene extends Scene {
       playermassrequiredtogrow: player.playermassrequiredtogrow,
       playersize: player.playersize,
       zoom: player.zoom,
-      dead: player.dead === true ? 1 : 0
+      dead: player.dead === true ? 1 : 0,
+      fuel:player.fuel,
+      fuelMax: player.fuelMax
     }
   }
 
@@ -60,6 +63,10 @@ export class GameScene extends Scene {
 
   getWorld(){
     return this.ground;
+  }
+
+  updateTileConnections(x,y){
+
   }
 
   create() {
@@ -231,11 +238,11 @@ export class GameScene extends Scene {
       "#f700ff",  //treasure1
       "#c802cf",  //treasure2
       "#f5384b",  //lava
-      "#830087"   //exploding // can be anything
+      "#830087"   //exploding // can be anything,
     ]
     var tilechances = [
       [
-        500,  //air
+        700,  //air
         1000,  //dirt,
         0,  //stone
         0,  //obsidian
@@ -253,7 +260,7 @@ export class GameScene extends Scene {
         0,  //exploding // can be anything
       ],
       [
-        200,  //air
+        400,  //air
         500,  //dirt,
         0,  //stone
         0,  //obsidian
@@ -271,7 +278,7 @@ export class GameScene extends Scene {
         0,  //exploding // can be anything
       ],
       [
-        10,  //air
+        200,  //air
         500,  //dirt,
         100,  //stone
         50,  //obsidian
@@ -289,7 +296,7 @@ export class GameScene extends Scene {
         0,  //exploding // can be anything
       ],
       [
-        5,  //air
+        75,  //air
         100,  //dirt,
         500,  //stone
         250,  //obsidian
@@ -307,7 +314,7 @@ export class GameScene extends Scene {
         1,  //exploding // can be anything
       ],
       [
-        2,  //air
+        25,  //air
         25,  //dirt,
         500,  //stone
         350,  //obsidian
@@ -325,7 +332,7 @@ export class GameScene extends Scene {
         25,  //exploding // can be anything
       ],
       [
-        2,  //air
+        25,  //air
         25,  //dirt,
         400,  //stone
         350,  //obsidian
@@ -357,7 +364,7 @@ export class GameScene extends Scene {
         2,  //loparite
         0,  //treasure1
         0,  //treasure2
-        500,  //lava
+        700,  //lava
         250,  //exploding // can be anything
       ]
   ]
@@ -385,38 +392,264 @@ export class GameScene extends Scene {
 
 
      
-    this.ground = Array.from(Array(this.worldSize.width), () => new Array(this.worldSize.height))
-  
-  
-    for(var x = 0; x < this.worldSize.width; x ++){
+    this.ground = Array.from(Array(this.worldSize.width*this.tiles), () => new Array(this.worldSize.height*this.tiles))
+    
+    for(var i = 0; i < this.groundTileCount-1; i ++){
+      for(var j = 0; j < tilechances.length; j ++)
+      tilechances[j].splice(1,0,0)
+      tilestypes.splice(1,0,"#ffffff")
+    }
+
+   
       for(var y = 0; y < this.worldSize.height; y ++){
+        for(var yy = 0; yy < this.tiles; yy++){
+          for(var x = 0; x < this.worldSize.width*this.tiles; x ++){
+            //const image = new PNGImage(this.tiles, this.tiles, 16, "#000000");
+                  
+            var color = percentageChance(tilestypes, tilechances[y]);
+            //color = image.createColor(color)
 
-        this.ground[x][y] = Array.from(Array(this.tiles), () => new Array(this.tiles))
-          //const image = new PNGImage(this.tiles, this.tiles, 16, "#000000");
-
-          for(var xx = 0; xx < this.tiles; xx ++){
-            for(var yy = 0; yy < this.tiles; yy ++){
-              var color = percentageChance(tilestypes, tilechances[y]);
-              //color = image.createColor(color)
-
-              this.ground[x][y][xx][yy] = tilestypes.indexOf(color);
-
-              //image.setPixel(xx,yy,color)
+            if(color > 0){
+              color = color + this.groundTileCount;
             }
+
+            this.ground[x][y*this.worldSize.height + yy] = tilestypes.indexOf(color);
+            //image.setPixel(x,y,color)
+        }
+      
+      }
+    }
+   
+      for(var y = 0; y < this.worldSize.height*this.tiles; y ++){
+        for(var x = 0; x < this.worldSize.width*this.tiles; x ++){
+        var tile = this.ground[y][x];
+
+        if(tile == 0){
+          
+          var surroundingTiles = {
+            tl: null,
+            t: null,
+            tr: null,
+            l: null,
+            r: null,
+            bl: null,
+            b: null,
+            br: null
           }
+
+          if(x > 0){
+            surroundingTiles.l = this.ground[y][x-1]
+          }
+
+          if(x < this.worldSize.width*this.tiles-1){
+            surroundingTiles.r = this.ground[y][x+1]
+          }
+
+          
+          if(y > 0){
+            surroundingTiles.t = this.ground[y-1][x]
+          }
+
+          if(y < this.worldSize.height*this.tiles-1){
+            surroundingTiles.b = this.ground[y+1][x]
+          }
+
+          if(x > 0 && y > 0){
+            surroundingTiles.tl = this.ground[y-1][x-1]
+          }
+
+          if(x < this.worldSize.width*this.tiles-1 && y > 0){
+            surroundingTiles.tr = this.ground[y-1][x+1]
+          }
+
+          if(y < this.worldSize.height*this.tiles-1 && x > 0)
+          {
+            surroundingTiles.bl = this.ground[y+1][x-1]
+          }
+
+          if(y < this.worldSize.height*this.tiles-1 && x < this.worldSize.width*this.tiles-1 )
+          {
+            surroundingTiles.br = this.ground[y+1][x+1]
+          }
+        
+          var countOfAirAround = 0;
+
+          Object.values(surroundingTiles).forEach(value => {
+            if(value < this.groundTileCount){
+              countOfAirAround++;
+            }
+          })
+
+
+         
+
+          if(surroundingTiles.t >= this.groundTileCount && surroundingTiles.b < this.groundTileCount && y > 1){
+            this.ground[y][x] = 7;
+         
+          }
+
+          if(surroundingTiles.b >= this.groundTileCount && surroundingTiles.t < this.groundTileCount){
+            this.ground[y][x] = 6;
+          }
+
+          if(surroundingTiles.r >= this.groundTileCount && surroundingTiles.l < this.groundTileCount ){
+            this.ground[y][x] = 5;
+          }
+
+          if(surroundingTiles.l >= this.groundTileCount && surroundingTiles.r < this.groundTileCount ){
+            this.ground[y][x] = 4;
+          }
+      
+          if( surroundingTiles.l >= this.groundTileCount && surroundingTiles.r >= this.groundTileCount && (surroundingTiles.t < this.groundTileCount || surroundingTiles.t == null) && surroundingTiles.b < this.groundTileCount){
+            this.ground[y][x] = 3;
+          }
+
+          if(surroundingTiles.t >= this.groundTileCount && surroundingTiles.b >= this.groundTileCount&& surroundingTiles.r < this.groundTileCount && surroundingTiles.l < this.groundTileCount){
+            this.ground[y][x] = 2;
+          }
+          
+
+          if(surroundingTiles.t < this.groundTileCount &&
+            surroundingTiles.r < this.groundTileCount &&
+            surroundingTiles.b >= this.groundTileCount &&
+            surroundingTiles.l >= this.groundTileCount ){
+            this.ground[y][x] = 12;
+          }
+
+          if(surroundingTiles.t >= this.groundTileCount &&
+            surroundingTiles.r < this.groundTileCount &&
+            surroundingTiles.b < this.groundTileCount &&
+            surroundingTiles.l >= this.groundTileCount ){
+            this.ground[y][x] = 13;
+          }
+
+          if(surroundingTiles.t >= this.groundTileCount &&
+            surroundingTiles.r >= this.groundTileCount &&
+            surroundingTiles.b < this.groundTileCount &&
+            surroundingTiles.l < this.groundTileCount ){
+            this.ground[y][x] = 14;
+          }
+
+          if(surroundingTiles.t < this.groundTileCount &&
+            surroundingTiles.r >= this.groundTileCount &&
+            surroundingTiles.b >= this.groundTileCount &&
+            surroundingTiles.l < this.groundTileCount ){
+            this.ground[y][x] = 15;
+          }
+
+          //16 = bottom + top corners
+
+          if(surroundingTiles.t < this.groundTileCount &&
+            surroundingTiles.r < this.groundTileCount &&
+            surroundingTiles.b >= this.groundTileCount &&
+            surroundingTiles.l < this.groundTileCount &&
+            surroundingTiles.tl >= this.groundTileCount &&
+            surroundingTiles.tr >= this.groundTileCount){
+            this.ground[y][x] = 16;
+          }
+
+          if(surroundingTiles.t < this.groundTileCount &&
+            surroundingTiles.r < this.groundTileCount &&
+            surroundingTiles.b < this.groundTileCount &&
+            surroundingTiles.l >= this.groundTileCount &&
+            surroundingTiles.tr >= this.groundTileCount &&
+            surroundingTiles.br >= this.groundTileCount){
+            this.ground[y][x] = 17;
+          }
+
+          if(surroundingTiles.t >= this.groundTileCount &&
+            surroundingTiles.r < this.groundTileCount &&
+            surroundingTiles.b < this.groundTileCount &&
+            surroundingTiles.l < this.groundTileCount &&
+            surroundingTiles.bl >= this.groundTileCount &&
+            surroundingTiles.br >= this.groundTileCount){
+            this.ground[y][x] = 18;
+          }
+
+          if(surroundingTiles.t < this.groundTileCount &&
+            surroundingTiles.r >= this.groundTileCount &&
+            surroundingTiles.b < this.groundTileCount &&
+            surroundingTiles.l < this.groundTileCount &&
+            surroundingTiles.bl >= this.groundTileCount &&
+            surroundingTiles.tl >= this.groundTileCount){
+            this.ground[y][x] = 19;
+          }
+
+          if(surroundingTiles.r >= this.groundTileCount &&
+            surroundingTiles.b >= this.groundTileCount &&
+            surroundingTiles.l < this.groundTileCount &&
+            surroundingTiles.t < this.groundTileCount &&
+            surroundingTiles.tl >= this.groundTileCount ){
+            this.ground[y][x] = 23;
+          }
+
+          if(surroundingTiles.r >= this.groundTileCount &&
+            surroundingTiles.b < this.groundTileCount &&
+            surroundingTiles.l < this.groundTileCount &&
+            surroundingTiles.t >= this.groundTileCount&&
+            surroundingTiles.bl >= this.groundTileCount  ){
+            this.ground[y][x] = 22;
+          }
+
+          if(surroundingTiles.r < this.groundTileCount &&
+            surroundingTiles.b < this.groundTileCount &&
+            surroundingTiles.l >= this.groundTileCount &&
+            surroundingTiles.t >= this.groundTileCount&&
+            surroundingTiles.br >= this.groundTileCount  ){
+            this.ground[y][x] = 21;
+          }
+
+          if(surroundingTiles.r < this.groundTileCount &&
+            surroundingTiles.b >= this.groundTileCount &&
+            surroundingTiles.l >= this.groundTileCount &&
+            surroundingTiles.t < this.groundTileCount&&
+            surroundingTiles.tr >= this.groundTileCount  ){
+            this.ground[y][x] = 20;
+          }
+
+
+          
+          if(surroundingTiles.t >= this.groundTileCount && surroundingTiles.r >= this.groundTileCount && surroundingTiles.b >= this.groundTileCount && surroundingTiles.l < this.groundTileCount){
+            this.ground[y][x] = 8;
+          }
+
+          if(surroundingTiles.l >= this.groundTileCount && surroundingTiles.r >= this.groundTileCount && surroundingTiles.b >= this.groundTileCount  && surroundingTiles.t < this.groundTileCount){
+            this.ground[y][x] = 9;
+          }
+
+          if(surroundingTiles.l >= this.groundTileCount && surroundingTiles.t >= this.groundTileCount && surroundingTiles.b >= this.groundTileCount  && surroundingTiles.r < this.groundTileCount){
+            this.ground[y][x] = 10;
+          }
+
+          if(surroundingTiles.l >= this.groundTileCount && surroundingTiles.t >= this.groundTileCount && surroundingTiles.r >= this.groundTileCount  && surroundingTiles.b < this.groundTileCount){
+            this.ground[y][x] = 11;
+          }
+          
+
+         
+          // 19 = long right, left corners
+          // 18 = long top, bottom corners
+          // 17 = long left, right corners
+          // 16 = long bottom, top corners
+
+
+          if(countOfAirAround == 0){
+            this.ground[y][x] = 1;
+          }
+        }
       }
     }
 
 
     
-    this.map = this.make.tilemap({ data:  this.ground[0][0], tileWidth: 64, tileHeight: 64, })
+    this.map = this.make.tilemap({ data: this.ground, tileWidth: 64, tileHeight: 64, })
     this.tileset = this.map.addTilesetImage('base_tiles', 'base_tiles', 64,64,1,2)
     this.layer = this.map.createLayer(0,this.tileset,0,0)
     
-    this.map.setCollisionBetween(1,tilestypes.length)
+    this.map.setCollisionBetween(this.groundTileCount,tilestypes.length)
     this.physics.add.collider(this.playersGroup, this.layer, function(player,layer){
     });
-    
+
     /*
     fs.writeFile('map.png', base64, 'base64', function(err){
       if (err) throw err
@@ -494,8 +727,8 @@ export class GameScene extends Scene {
      this.map.removeTileAt(tile.x,  tile.y);
     
      player.body.setDrag(1,1)
-     player.body.setVelocityX(32 - (player.x - tile.x*64));
-     player.body.setVelocityY(32 - (player.y - tile.y*64 + (player.playersize/2 - 32)) );
+     player.body.setVelocityX(32 - (player.x - tile.x*64)); // center horiz
+     player.body.setVelocityY(tile.y*64 - Math.floor(player.y/64)*64 ); // to tile bottom
      player.body.setAllowGravity(false);
      player.body.checkCollision.none = true;
      player.movementEnabled = false;
@@ -532,7 +765,8 @@ export class GameScene extends Scene {
 
     this.playersGroup.children.iterate(player => {
 
-      let deadUpdated = player.dead != player.prevDead
+      let deadUpdated = player.dead != player.prevDead;
+      let fuelUpdated = player.fuel != player.prevfuel;
       //let inputUpdated = player.inputValues != player.prevInputValues
       let isMovingX = false
       let isMovingY = false
@@ -568,7 +802,7 @@ export class GameScene extends Scene {
       if(isMovingX || isMovingY)
         isMoving = true;
       
-      if (isMoving || deadUpdated || ( x != px || y != py)) {
+      if (isMoving || deadUpdated || ( x != px || y != py) || fuelUpdated) {
         if (deadUpdated || !player.dead) {
           updates.push(this.prepareToSync(player))
           player.postUpdate()
@@ -614,7 +848,7 @@ export class GameScene extends Scene {
             
               if(TileidxsUnderPlayer.length > 0){
 
-                TileidxsUnderPlayer = TileidxsUnderPlayer.filter(tile => tile != null && tile.index > 0); // no airblocks
+                TileidxsUnderPlayer = TileidxsUnderPlayer.filter(tile => tile != null && tile.index >= this.groundTileCount); // no airblocks
 
                 var closest = TileidxsUnderPlayer[0];
 
@@ -631,7 +865,7 @@ export class GameScene extends Scene {
                     }
                   }
 
-                  if(closest != null && closest.index >= 1)
+                  if(closest != null && closest.index >= this.groundTileCount)
                     this.RemoveTile(player, closest);
 
                   return;
@@ -646,7 +880,7 @@ export class GameScene extends Scene {
                 var tileUnderPlayer = this.map.getTileAt(nearestPlayerTileCoordsX,nearestPlayerTileCoordsY+1);
                 var tile = this.map.getTileAt(nearestPlayerTileCoordsX-1,nearestPlayerTileCoordsY)
                
-                if(tile != null && tile.index >= 1 && tileUnderPlayer != null && tileUnderPlayer.index >= 1)
+                if(tile != null && tile.index >= this.groundTileCount && tileUnderPlayer != null && tileUnderPlayer.index >= this.groundTileCount)
                   this.RemoveTile(player, tile);
 
                 return;
@@ -661,7 +895,7 @@ export class GameScene extends Scene {
                 var tileUnderPlayer = this.map.getTileAt(nearestPlayerTileCoordsX,nearestPlayerTileCoordsY+1);
                 var tile = this.map.getTileAt(nearestPlayerTileCoordsX+1,nearestPlayerTileCoordsY)    
 
-                if(tile != null && tile.index >= 1 && tileUnderPlayer != null && tileUnderPlayer.index >= 1)
+                if(tile != null && tile.index >= this.groundTileCount && tileUnderPlayer != null && tileUnderPlayer.index >= this.groundTileCount)
                 this.RemoveTile(player, tile);
 
                 return;

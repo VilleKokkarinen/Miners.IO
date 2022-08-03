@@ -32,11 +32,16 @@ export default class BootScene extends Scene {
     .setTint(0xe6de10);
 
     this.healthText = this.add
-    .bitmapText(this.padding, 38 + this.topPadding, "arcade", "",18)
+    .bitmapText(this.padding, 35 + this.topPadding, "arcade", "hp: ",18)
     .setTint(0xe6de10);
 
+    this.fuelText = this.add
+    .bitmapText(this.padding, 70 + this.topPadding, "arcade", "fuel: ",18)
+    .setTint(0xebebeb);
+
+
     this.massText = this.add
-    .bitmapText(this.padding, 76 + this.topPadding, "arcade", "",18)
+    .bitmapText(this.padding, 105 + this.topPadding, "arcade", "mass: ",18)
     .setTint(0xebebeb);
 
     
@@ -44,11 +49,13 @@ export default class BootScene extends Scene {
     eventsCenter.on("updateName", this.updateName, this);
     eventsCenter.on("updateMass", this.updateMass, this);
     eventsCenter.on('updateHealth', this.updateHealth, this)
+    eventsCenter.on('updateFuel', this.updateFuel, this)
 
     this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
         eventsCenter.off('updateName', this.updateName, this)
         eventsCenter.off('updateMass', this.updateMass, this)
         eventsCenter.off('updateHealth', this.updateHealth, this)
+        eventsCenter.off('updateFuel', this.updateFuel, this)
     })
   }
 
@@ -57,7 +64,14 @@ export default class BootScene extends Scene {
   }
 
   updateHealth(health){
-    this.healthText.setText(health);
+    this.healthText.setText("hp: "+health);
+  }
+
+  updateFuel(obj){
+
+    var percentage = Math.floor(obj.fuel / obj.fuelMax * 100);
+
+    this.fuelText.setText("fuel: " + percentage + " %");
   }
 
   nFormatter(num, digits) {
@@ -79,7 +93,7 @@ export default class BootScene extends Scene {
 
   updateMass(mass) {
     var result = this.nFormatter(mass, 2)
-    this.massText.setText(result);
+    this.massText.setText("mass: "+result);
   }
 
   update(time, delta) {    
