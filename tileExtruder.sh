@@ -1,0 +1,1 @@
+tile-extruder --tileWidth 64 --tileHeight 64 --input ./client/assets/tileSet.png --output ./client/assets/tileSet-extruded.png
