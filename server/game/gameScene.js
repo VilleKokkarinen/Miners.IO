@@ -18,7 +18,7 @@ export class GameScene extends Scene {
     this.chunkSize = world.getChunkSize();
     this.worldSize = world.getWorldSize();
     this.tiles = world.tiles;
-    this.groundTileCount = 8*3;
+    this.groundTileCount = 8*5;
   }
 
   init() {
@@ -537,8 +537,6 @@ export class GameScene extends Scene {
             this.ground[y][x] = 15;
           }
 
-          //16 = bottom + top corners
-
           if(surroundingTiles.t < this.groundTileCount &&
             surroundingTiles.r < this.groundTileCount &&
             surroundingTiles.b >= this.groundTileCount &&
@@ -625,13 +623,6 @@ export class GameScene extends Scene {
             this.ground[y][x] = 11;
           }
           
-
-         
-          // 19 = long right, left corners
-          // 18 = long top, bottom corners
-          // 17 = long left, right corners
-          // 16 = long bottom, top corners
-
 
           if(countOfAirAround == 0){
             this.ground[y][x] = 1;
