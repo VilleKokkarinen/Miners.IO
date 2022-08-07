@@ -158,9 +158,9 @@ export default class GameScene extends Scene {
       }
     })
 
-    this.channel.on('tileMined', tile => {
+    this.channel.on('tileEdited', tile => {
       console.log(tile)
-      this.map.removeTileAt(tile.x, tile.y);
+      this.map.putTileAt(tile.index, tile.x, tile.y);
     })
 
     try {

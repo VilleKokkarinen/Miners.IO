@@ -18,7 +18,7 @@ export class GameScene extends Scene {
     this.chunkSize = world.getChunkSize();
     this.worldSize = world.getWorldSize();
     this.tiles = world.tiles;
-    this.groundTileCount = 8*5;
+    this.groundTileCount = 8*5+1;
   }
 
   init() {
@@ -65,8 +65,172 @@ export class GameScene extends Scene {
     return this.ground;
   }
 
-  updateTileConnections(x,y){
+  updateTileConnections(x,y, checkSurroundingTiles = null){
 
+    var tile = this.ground[y][x];
+
+    if(tile != null && (tile == 0 || checkSurroundingTiles == true)){
+      
+      var surroundingTiles = {
+        t: null,
+        l: null,
+        r: null,
+        b: null,
+      }
+
+      if(x > 0){
+        surroundingTiles.l = this.ground[y][x-1]
+      }
+
+      if(x < this.worldSize.width*this.tiles-1){
+        surroundingTiles.r = this.ground[y][x+1]
+      }
+      
+      if(y > 0){
+        surroundingTiles.t = this.ground[y-1][x]
+      }
+
+      if(y < this.worldSize.height*this.tiles-1){
+        surroundingTiles.b = this.ground[y+1][x]
+      }
+      
+      if(surroundingTiles.r < this.groundTileCount &&
+        surroundingTiles.b < this.groundTileCount &&
+        surroundingTiles.l < this.groundTileCount &&
+        surroundingTiles.t < this.groundTileCount
+        ){
+        this.ground[y][x] = 0;
+        return;
+      }
+
+      if(surroundingTiles.r >= this.groundTileCount &&
+        surroundingTiles.b >= this.groundTileCount &&
+        surroundingTiles.l >= this.groundTileCount &&
+        surroundingTiles.t >= this.groundTileCount ){
+        this.ground[y][x] = 1;
+        return;
+      }
+
+
+      if(surroundingTiles.t >= this.groundTileCount &&
+        surroundingTiles.b >= this.groundTileCount &&
+        surroundingTiles.r < this.groundTileCount &&
+        surroundingTiles.l < this.groundTileCount){
+       this.ground[y][x] = 2;
+       return;
+     }
+    
+      if( surroundingTiles.l >= this.groundTileCount &&
+        surroundingTiles.r >= this.groundTileCount &&
+        surroundingTiles.t < this.groundTileCount &&
+        surroundingTiles.b < this.groundTileCount){
+        this.ground[y][x] = 3;
+        return;
+      }
+
+
+      if(surroundingTiles.l >= this.groundTileCount &&
+        surroundingTiles.r < this.groundTileCount &&
+        surroundingTiles.t < this.groundTileCount &&
+        surroundingTiles.b < this.groundTileCount){
+      this.ground[y][x] = 4;
+      return;
+    }
+      if(surroundingTiles.r >= this.groundTileCount &&
+        surroundingTiles.l < this.groundTileCount &&
+        surroundingTiles.t < this.groundTileCount &&
+        surroundingTiles.b < this.groundTileCount
+        ){
+       this.ground[y][x] = 5;
+       return;
+     }
+
+
+    if(surroundingTiles.b >= this.groundTileCount &&
+        surroundingTiles.t < this.groundTileCount &&
+        surroundingTiles.r < this.groundTileCount &&
+        surroundingTiles.l < this.groundTileCount &&
+        y < this.worldSize.height*this.tiles){
+        this.ground[y][x] = 6;
+        return;
+      }      
+
+     if(surroundingTiles.t >= this.groundTileCount &&
+      surroundingTiles.b < this.groundTileCount &&
+      surroundingTiles.r < this.groundTileCount &&
+      surroundingTiles.l < this.groundTileCount &&
+      y > 1){
+      this.ground[y][x] = 7;
+      return;
+    }
+  
+    if(surroundingTiles.t >= this.groundTileCount &&
+      surroundingTiles.r >= this.groundTileCount &&
+      surroundingTiles.b >= this.groundTileCount &&
+      surroundingTiles.l < this.groundTileCount){
+     this.ground[y][x] = 8;
+     return;
+   }
+
+   if(surroundingTiles.l >= this.groundTileCount &&
+      surroundingTiles.r >= this.groundTileCount &&
+      surroundingTiles.b >= this.groundTileCount &&
+      surroundingTiles.t < this.groundTileCount){
+     this.ground[y][x] = 9;
+     return;
+   }
+
+   if(surroundingTiles.l >= this.groundTileCount &&
+      surroundingTiles.t >= this.groundTileCount &&
+      surroundingTiles.b >= this.groundTileCount &&
+      surroundingTiles.r < this.groundTileCount){
+     this.ground[y][x] = 10;
+     return;
+   }
+
+   if(surroundingTiles.l >= this.groundTileCount &&
+      surroundingTiles.t >= this.groundTileCount &&
+      surroundingTiles.r >= this.groundTileCount &&
+      surroundingTiles.b < this.groundTileCount){
+     this.ground[y][x] = 11;
+     return;
+   }
+
+
+      if(surroundingTiles.t < this.groundTileCount &&
+        surroundingTiles.r < this.groundTileCount &&
+        surroundingTiles.b >= this.groundTileCount &&
+        surroundingTiles.l >= this.groundTileCount ){
+        this.ground[y][x] = 12;
+        return;
+      }
+
+      if(surroundingTiles.t >= this.groundTileCount &&
+        surroundingTiles.r < this.groundTileCount &&
+        surroundingTiles.b < this.groundTileCount &&
+        surroundingTiles.l >= this.groundTileCount ){
+        this.ground[y][x] = 13;
+        return;
+      }
+
+      if(surroundingTiles.t >= this.groundTileCount &&
+        surroundingTiles.r >= this.groundTileCount &&
+        surroundingTiles.b < this.groundTileCount &&
+        surroundingTiles.l < this.groundTileCount ){
+        this.ground[y][x] = 14;
+        return;
+      }
+
+      if(surroundingTiles.t < this.groundTileCount &&
+        surroundingTiles.r >= this.groundTileCount &&
+        surroundingTiles.b >= this.groundTileCount &&
+        surroundingTiles.l < this.groundTileCount ){
+        this.ground[y][x] = 15;
+        return;
+      }    
+
+  
+    }  
   }
 
   create() {
@@ -422,213 +586,9 @@ export class GameScene extends Scene {
    
       for(var y = 0; y < this.worldSize.height*this.tiles; y ++){
         for(var x = 0; x < this.worldSize.width*this.tiles; x ++){
-        var tile = this.ground[y][x];
-
-        if(tile == 0){
-          
-          var surroundingTiles = {
-            tl: null,
-            t: null,
-            tr: null,
-            l: null,
-            r: null,
-            bl: null,
-            b: null,
-            br: null
-          }
-
-          if(x > 0){
-            surroundingTiles.l = this.ground[y][x-1]
-          }
-
-          if(x < this.worldSize.width*this.tiles-1){
-            surroundingTiles.r = this.ground[y][x+1]
-          }
-
-          
-          if(y > 0){
-            surroundingTiles.t = this.ground[y-1][x]
-          }
-
-          if(y < this.worldSize.height*this.tiles-1){
-            surroundingTiles.b = this.ground[y+1][x]
-          }
-
-          if(x > 0 && y > 0){
-            surroundingTiles.tl = this.ground[y-1][x-1]
-          }
-
-          if(x < this.worldSize.width*this.tiles-1 && y > 0){
-            surroundingTiles.tr = this.ground[y-1][x+1]
-          }
-
-          if(y < this.worldSize.height*this.tiles-1 && x > 0)
-          {
-            surroundingTiles.bl = this.ground[y+1][x-1]
-          }
-
-          if(y < this.worldSize.height*this.tiles-1 && x < this.worldSize.width*this.tiles-1 )
-          {
-            surroundingTiles.br = this.ground[y+1][x+1]
-          }
-        
-          var countOfAirAround = 0;
-
-          Object.values(surroundingTiles).forEach(value => {
-            if(value < this.groundTileCount){
-              countOfAirAround++;
-            }
-          })
-
-
-         
-
-          if(surroundingTiles.t >= this.groundTileCount && surroundingTiles.b < this.groundTileCount && y > 1){
-            this.ground[y][x] = 7;
-         
-          }
-
-          if(surroundingTiles.b >= this.groundTileCount && surroundingTiles.t < this.groundTileCount){
-            this.ground[y][x] = 6;
-          }
-
-          if(surroundingTiles.r >= this.groundTileCount && surroundingTiles.l < this.groundTileCount ){
-            this.ground[y][x] = 5;
-          }
-
-          if(surroundingTiles.l >= this.groundTileCount && surroundingTiles.r < this.groundTileCount ){
-            this.ground[y][x] = 4;
-          }
-      
-          if( surroundingTiles.l >= this.groundTileCount && surroundingTiles.r >= this.groundTileCount && (surroundingTiles.t < this.groundTileCount || surroundingTiles.t == null) && surroundingTiles.b < this.groundTileCount){
-            this.ground[y][x] = 3;
-          }
-
-          if(surroundingTiles.t >= this.groundTileCount && surroundingTiles.b >= this.groundTileCount&& surroundingTiles.r < this.groundTileCount && surroundingTiles.l < this.groundTileCount){
-            this.ground[y][x] = 2;
-          }
-          
-
-          if(surroundingTiles.t < this.groundTileCount &&
-            surroundingTiles.r < this.groundTileCount &&
-            surroundingTiles.b >= this.groundTileCount &&
-            surroundingTiles.l >= this.groundTileCount ){
-            this.ground[y][x] = 12;
-          }
-
-          if(surroundingTiles.t >= this.groundTileCount &&
-            surroundingTiles.r < this.groundTileCount &&
-            surroundingTiles.b < this.groundTileCount &&
-            surroundingTiles.l >= this.groundTileCount ){
-            this.ground[y][x] = 13;
-          }
-
-          if(surroundingTiles.t >= this.groundTileCount &&
-            surroundingTiles.r >= this.groundTileCount &&
-            surroundingTiles.b < this.groundTileCount &&
-            surroundingTiles.l < this.groundTileCount ){
-            this.ground[y][x] = 14;
-          }
-
-          if(surroundingTiles.t < this.groundTileCount &&
-            surroundingTiles.r >= this.groundTileCount &&
-            surroundingTiles.b >= this.groundTileCount &&
-            surroundingTiles.l < this.groundTileCount ){
-            this.ground[y][x] = 15;
-          }
-
-          if(surroundingTiles.t < this.groundTileCount &&
-            surroundingTiles.r < this.groundTileCount &&
-            surroundingTiles.b >= this.groundTileCount &&
-            surroundingTiles.l < this.groundTileCount &&
-            surroundingTiles.tl >= this.groundTileCount &&
-            surroundingTiles.tr >= this.groundTileCount){
-            this.ground[y][x] = 16;
-          }
-
-          if(surroundingTiles.t < this.groundTileCount &&
-            surroundingTiles.r < this.groundTileCount &&
-            surroundingTiles.b < this.groundTileCount &&
-            surroundingTiles.l >= this.groundTileCount &&
-            surroundingTiles.tr >= this.groundTileCount &&
-            surroundingTiles.br >= this.groundTileCount){
-            this.ground[y][x] = 17;
-          }
-
-          if(surroundingTiles.t >= this.groundTileCount &&
-            surroundingTiles.r < this.groundTileCount &&
-            surroundingTiles.b < this.groundTileCount &&
-            surroundingTiles.l < this.groundTileCount &&
-            surroundingTiles.bl >= this.groundTileCount &&
-            surroundingTiles.br >= this.groundTileCount){
-            this.ground[y][x] = 18;
-          }
-
-          if(surroundingTiles.t < this.groundTileCount &&
-            surroundingTiles.r >= this.groundTileCount &&
-            surroundingTiles.b < this.groundTileCount &&
-            surroundingTiles.l < this.groundTileCount &&
-            surroundingTiles.bl >= this.groundTileCount &&
-            surroundingTiles.tl >= this.groundTileCount){
-            this.ground[y][x] = 19;
-          }
-
-          if(surroundingTiles.r >= this.groundTileCount &&
-            surroundingTiles.b >= this.groundTileCount &&
-            surroundingTiles.l < this.groundTileCount &&
-            surroundingTiles.t < this.groundTileCount &&
-            surroundingTiles.tl >= this.groundTileCount ){
-            this.ground[y][x] = 23;
-          }
-
-          if(surroundingTiles.r >= this.groundTileCount &&
-            surroundingTiles.b < this.groundTileCount &&
-            surroundingTiles.l < this.groundTileCount &&
-            surroundingTiles.t >= this.groundTileCount&&
-            surroundingTiles.bl >= this.groundTileCount  ){
-            this.ground[y][x] = 22;
-          }
-
-          if(surroundingTiles.r < this.groundTileCount &&
-            surroundingTiles.b < this.groundTileCount &&
-            surroundingTiles.l >= this.groundTileCount &&
-            surroundingTiles.t >= this.groundTileCount&&
-            surroundingTiles.br >= this.groundTileCount  ){
-            this.ground[y][x] = 21;
-          }
-
-          if(surroundingTiles.r < this.groundTileCount &&
-            surroundingTiles.b >= this.groundTileCount &&
-            surroundingTiles.l >= this.groundTileCount &&
-            surroundingTiles.t < this.groundTileCount&&
-            surroundingTiles.tr >= this.groundTileCount  ){
-            this.ground[y][x] = 20;
-          }
-
-
-          
-          if(surroundingTiles.t >= this.groundTileCount && surroundingTiles.r >= this.groundTileCount && surroundingTiles.b >= this.groundTileCount && surroundingTiles.l < this.groundTileCount){
-            this.ground[y][x] = 8;
-          }
-
-          if(surroundingTiles.l >= this.groundTileCount && surroundingTiles.r >= this.groundTileCount && surroundingTiles.b >= this.groundTileCount  && surroundingTiles.t < this.groundTileCount){
-            this.ground[y][x] = 9;
-          }
-
-          if(surroundingTiles.l >= this.groundTileCount && surroundingTiles.t >= this.groundTileCount && surroundingTiles.b >= this.groundTileCount  && surroundingTiles.r < this.groundTileCount){
-            this.ground[y][x] = 10;
-          }
-
-          if(surroundingTiles.l >= this.groundTileCount && surroundingTiles.t >= this.groundTileCount && surroundingTiles.r >= this.groundTileCount  && surroundingTiles.b < this.groundTileCount){
-            this.ground[y][x] = 11;
-          }
-          
-
-          if(countOfAirAround == 0){
-            this.ground[y][x] = 1;
-          }
+          this.updateTileConnections(x,y);
+       
         }
-      }
     }
 
 
@@ -714,46 +674,160 @@ export class GameScene extends Scene {
 
 
   RemoveTile(player, tile){
-     // remove the tile from the map
-     this.map.removeTileAt(tile.x,  tile.y);
+    // remove the tile from the map
+
+    var x = tile.x;
+    var y = tile.y;
+
+    var surroundingTiles = {
+      t: null,
+      l: null,
+      r: null,
+      b: null
+    }
+
+    if(x > 0){
+      surroundingTiles.l = this.ground[y][x-1]
+    }
+
+    if(x < this.worldSize.width*this.tiles-1){
+      surroundingTiles.r = this.ground[y][x+1]
+    }
     
-     player.body.setDrag(1,1)
-     player.body.setVelocityX(32 - (player.x - tile.x*64)); // center horiz
-     player.body.setVelocityY(tile.y*64 - Math.floor(player.y/64)*64 ); // to tile bottom
-     player.body.setAllowGravity(false);
-     player.body.checkCollision.none = true;
-     player.movementEnabled = false;
+    if(y > 0){
+      surroundingTiles.t = this.ground[y-1][x]
+    }
 
-     var self = this;
+    if(y < this.worldSize.height*this.tiles-1){
+      surroundingTiles.b = this.ground[y+1][x]
+    }
 
-     this.time.addEvent({
-       delay: 1000/60*60, // 1s of no inputting => depending on material digging
-         callback:function() {
-           player.MineMaterial(tile.index)
-           player.movementEnabled = true;
-           player.body.setAllowGravity(true);
-           player.body.setDrag(0.025, 1)
-           player.body.setVelocityY(0);
-           player.body.setAccelerationY(0);
-           player.body.setVelocityX(0);
-           player.body.setAccelerationX(0);
-           //player.setPosition(Math.floor(player.x), Math.floor(player.y));
-           player.body.checkCollision.none = false;
+    surroundingTiles = JSON.parse(JSON.stringify(surroundingTiles))
+    
+    this.map.putTileAt(0, x,  y)
+    this.ground[y][x] = 0;
 
-           self.io.room().emit('tileMined', {
-             x: tile.x,
-             y: tile.y
-           })
-         }
-     });
+    this.updateTileConnections(x, y);
+
+    for(var i = 0; i < 2; i ++){
+      if(surroundingTiles.l != null &&surroundingTiles.l < this.groundTileCount){
+        this.updateTileConnections(x-1, y, true); 
+      }
+      if(surroundingTiles.t != null && surroundingTiles.t < this.groundTileCount){
+        this.updateTileConnections(x, y-1, true); 
+      }
+      if(surroundingTiles.r != null &&surroundingTiles.r < this.groundTileCount){
+        this.updateTileConnections(x+1, y, true); 
+      }
+      if(surroundingTiles.b != null &&surroundingTiles.b < this.groundTileCount){
+        this.updateTileConnections(x, y+1, true); 
+      }    
+    }
+
+   
+  
+    player.body.setDrag(1,1)
+    player.body.setVelocityX(32 - (player.x - tile.x*64)); // center horiz
+    player.body.setVelocityY(tile.y*64 - Math.floor(player.y/64)*64 ); // to tile bottom
+    player.body.setAllowGravity(false);
+    player.body.checkCollision.none = true;
+    player.movementEnabled = false;
+
+    var self = this;
+
+    this.time.addEvent({
+      delay: 1000/60*60, // 1s of no inputting => depending on material digging
+        callback:function() {
+          player.MineMaterial(tile.index)
+          player.movementEnabled = true;
+          player.body.setAllowGravity(true);
+          player.body.setDrag(0.025, 1)
+          player.body.setVelocityY(0);
+          player.body.setAccelerationY(0);
+          player.body.setVelocityX(0);
+          player.body.setAccelerationX(0);
+          //player.setPosition(Math.floor(player.x), Math.floor(player.y));
+          player.body.checkCollision.none = false;
+
+          self.io.room().emit('tileEdited', {
+            x: x,
+            y: y,
+            index: self.ground[y][x]
+          })
+
+                
+          var surroundingTiles2 = {
+            t: null,
+            l: null,
+            r: null,
+            b: null,
+          }
+
+
+          if(x > 0){
+            surroundingTiles2.l = self.ground[y][x-1]
+          }
+
+          if(x < self.worldSize.width*self.tiles-1){
+            surroundingTiles2.r = self.ground[y][x+1]
+          }
+          
+          if(y > 0){
+            surroundingTiles2.t = self.ground[y-1][x]
+          }
+
+          if(y < self.worldSize.height*self.tiles-1){
+            surroundingTiles2.b = self.ground[y+1][x]
+          }
+          surroundingTiles2 = JSON.parse(JSON.stringify(surroundingTiles2))
+
+          if(x > 0){
+            if(surroundingTiles.l != surroundingTiles2.l){
+              self.io.room().emit('tileEdited', {
+                x: x-1,
+                y: y,
+                index: surroundingTiles2.l
+              })
+            }
+          }
+      
+          if(x < self.worldSize.width*self.tiles-1){
+            if(surroundingTiles.r != surroundingTiles2.r){
+              self.io.room().emit('tileEdited', {
+                x: x+1,
+                y: y,
+                index: surroundingTiles2.r
+              })
+            }
+          }
+      
+          
+          if(y > 0){
+            if(surroundingTiles.t != surroundingTiles2.t){
+              self.io.room().emit('tileEdited', {
+                x: x,
+                y: y-1,
+                index: surroundingTiles2.t
+              })
+            }
+          }
+      
+          if(y < self.worldSize.height*self.tiles-1){
+            if(surroundingTiles.b != surroundingTiles2.b){
+              self.io.room().emit('tileEdited', {
+                x: x,
+                y: y+1,
+                index: surroundingTiles2.b
+              })
+            }
+          }              
+        }
+    });
   }
 
   update() {
     let updates = [];
     
-    //var Statehide = FkDstrGridData.getStateHide();
-    //var stateVisible = FkDstrGridData.getStateDirt();
-
     this.playersGroup.children.iterate(player => {
 
       let deadUpdated = player.dead != player.prevDead;
